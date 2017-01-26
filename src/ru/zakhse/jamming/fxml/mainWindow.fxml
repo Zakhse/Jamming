@@ -13,6 +13,7 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
@@ -77,21 +78,9 @@
                         <SpinnerValueFactory.IntegerSpinnerValueFactory fx:id="latticeSizeSpinnerFactory" max="400"
                                                                         min="10"/>
                     </valueFactory>
-                </Spinner>
-                <Label minHeight="-Infinity" minWidth="-Infinity" text="%options.size.kmer">
-                    <VBox.margin>
-                        <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
-                    </VBox.margin>
-                </Label>
-                <Spinner fx:id="kmerSizeSpinner" editable="true" minHeight="-Infinity" minWidth="-Infinity"
-                         prefWidth="130.0">
-                    <VBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0"/>
-                    </VBox.margin>
-                    <valueFactory>
-                        <SpinnerValueFactory.IntegerSpinnerValueFactory fx:id="kmerSizeSpinnerFactory" max="100"
-                                                                        min="2"/>
-                    </valueFactory>
+                    <tooltip>
+                        <Tooltip text="%options.size.lattice.tooltip"/>
+                    </tooltip>
                 </Spinner>
                 <Label minHeight="-Infinity" minWidth="-Infinity" text="%options.repeats">
                     <VBox.margin>
@@ -107,14 +96,18 @@
                         <SpinnerValueFactory.IntegerSpinnerValueFactory fx:id="repeatsSpinnerFactory" max="1000"
                                                                         min="10"/>
                     </valueFactory>
+                    <tooltip>
+                        <Tooltip text="%options.repeats.tooltip"/>
+                    </tooltip>
                 </Spinner>
                 <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS"/>
-                <Button mnemonicParsing="false" text="%options.start">
+                <Button fx:id="startButton" mnemonicParsing="false" onAction="#startAction" text="%options.start">
                     <VBox.margin>
                         <Insets bottom="10.0" left="5.0" right="5.0"/>
                     </VBox.margin>
                 </Button>
-                <Button disable="true" mnemonicParsing="false" text="%options.stop">
+                <Button fx:id="stopButton" disable="true" mnemonicParsing="false" onAction="#stopAction"
+                        text="%options.stop">
                     <VBox.margin>
                         <Insets bottom="10.0" left="5.0" right="5.0"/>
                     </VBox.margin>
@@ -124,10 +117,10 @@
         <VBox HBox.hgrow="ALWAYS">
             <LineChart fx:id="graph" VBox.vgrow="ALWAYS">
                 <xAxis>
-                    <NumberAxis side="BOTTOM"/>
+                    <NumberAxis fx:id="xAxis" side="BOTTOM"/>
                 </xAxis>
                 <yAxis>
-                    <NumberAxis side="LEFT"/>
+                    <NumberAxis fx:id="yAxis" side="LEFT"/>
                 </yAxis>
             </LineChart>
             <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" VBox.vgrow="NEVER">
