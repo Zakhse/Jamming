@@ -59,7 +59,7 @@ public class ExperimentExecutor implements Runnable {
 
     @Override
     public void run() {
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
         List<Future<Double>> resultList = new LinkedList<>();
         for (int i = 0; i < repeats; i++) {
             resultList.add(executor.submit(new FieldGenerator(latticeSize, kmerSize)));

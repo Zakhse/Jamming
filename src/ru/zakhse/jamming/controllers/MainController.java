@@ -98,7 +98,7 @@ public class MainController {
                 allExperimentsAmount -= newTasksAmount;
                 CountDownLatch latch = new CountDownLatch(newTasksAmount);
 
-                ExecutorService service = Executors.newCachedThreadPool();
+                ExecutorService service = Executors.newFixedThreadPool(4);
                 for (int j = 0; j < newTasksAmount; j++) {
                     service.submit(new ExperimentExecutor(graphData, latch, latticeSizeSpinner.getValue(), kmerSize++,
                             repeatsSpinner.getValue()));
