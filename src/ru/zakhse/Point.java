@@ -29,8 +29,8 @@ public class Point {
 
     @Override
     public int hashCode() {
-        int result = (int) (x ^ (x >>> 32));
-        result = 31 * result + (int) (y ^ (y >>> 32));
+        int result = x;
+        result = 31 * result + y;
         return result;
     }
 }

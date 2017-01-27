@@ -8,20 +8,18 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
-import jdk.management.resource.internal.inst.ThreadRMHooks;
 import ru.zakhse.jamming.lattice.ExperimentExecutor;
 import ru.zakhse.spinner.*;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainController {
 
-    enum AppStatus {STOPPED, RUNNING, PAUSED}
+    enum AppStatus {FINISHED, RUNNING, PAUSED}
 
-    public AppStatus status = AppStatus.STOPPED;
+    public AppStatus status = AppStatus.FINISHED;
 
     @FXML
     public Label leftStatus;
@@ -90,6 +88,8 @@ public class MainController {
         status = AppStatus.RUNNING;
 
         Thread kek = new Thread(() -> {
+            long time1 = System.currentTimeMillis();
+
             int kmerSize = 2;
             int allExperimentsAmount = latticeSizeSpinner.getValue() - kmerSize + 1;
 
@@ -106,6 +106,11 @@ public class MainController {
                 try {latch.await();} catch (InterruptedException e) {e.printStackTrace();}
                 service.shutdown();
             }
+
+            long time2 = System.currentTimeMillis();
+            System.out.printf("Elapsed time: %.2f\n", (time2 - time1) / 1000.0);
+
+            status = AppStatus.FINISHED;
             stopAction(actionEvent);
         });
         kek.start();
@@ -117,6 +122,13 @@ public class MainController {
         stopButton.setDisable(true);
         latticeSizeSpinner.setDisable(false);
         repeatsSpinner.setDisable(false);
-        status = AppStatus.STOPPED;
+
+        switch (status) {
+            case RUNNING:
+                status = AppStatus.PAUSED;
+                break;
+            case FINISHED:
+                break;
+        }
     }
 }
