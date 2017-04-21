@@ -8,16 +8,17 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import ru.zakhse.Timer;
 import ru.zakhse.jamming.lattice.ExperimentExecutor;
+import ru.zakhse.jamming.lattice.ExperimentProperties;
 import ru.zakhse.spinner.*;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.sql.Time;
+import java.util.concurrent.*;
 
 public class MainController {
 
-    enum AppStatus {FINISHED, RUNNING, PAUSED}
+    enum AppStatus {READY, RUNNING, PAUSED, FINISHED}
 
     public AppStatus status = AppStatus.FINISHED;
 
@@ -26,10 +27,10 @@ public class MainController {
     public Label rightStatus;
     public ProgressBar progressBar;
 
-    public LineChart<Number, Number> graph;
+    public LineChart<Integer, Number> graph;
     public NumberAxis xAxis;
     public NumberAxis yAxis;
-    public ObservableList<XYChart.Data<Number, Number>> graphData;
+    public ObservableList<XYChart.Data<Integer, Number>> graphData;
 
     public Spinner<Integer> repeatsSpinner;
     public Spinner<Integer> latticeSizeSpinner;
@@ -38,20 +39,33 @@ public class MainController {
     public Button startButton;
     public Button stopButton;
 
+    private ExecutorService executor;
+
+    private Timer timer;
+    private ExperimentProperties properties;
+
     @FXML
     public void initialize() {
+        properties = ExperimentProperties.getInstance();
         optionsInit();
         graphInit();
+        timer = new Timer();
     }
 
     private void optionsInit() {
-        latticeSizeSpinnerFactory.setValue(100);
-        repeatsSpinnerFactory.setValue(100);
+        Integer res = properties.getInt("k-mer_size");
+        latticeSizeSpinnerFactory.setValue(res != null ? res : 100);
+        res = properties.getInt("repeats");
+        repeatsSpinnerFactory.setValue(res != null ? res : 100);
         IntegerStringConverter.createFor(latticeSizeSpinner);
         IntegerStringConverter.createFor(repeatsSpinner);
 
         latticeSizeSpinner.valueProperty().addListener(((observable, oldValue, newValue) -> {
             xAxis.setUpperBound(newValue);
+            clear();
+        }));
+        repeatsSpinner.valueProperty().addListener(((observable, oldValue, newValue) -> {
+            clear();
         }));
     }
 
@@ -60,7 +74,6 @@ public class MainController {
         xAxis.setAutoRanging(false);
         xAxis.setLowerBound(2);
         xAxis.setUpperBound(latticeSizeSpinner.getValue());
-        //xAxis.setTickUnit(2);
 
         yAxis.setLabel("Filled part of lattice");
         yAxis.setAutoRanging(false);
@@ -68,29 +81,31 @@ public class MainController {
         yAxis.setUpperBound(1.0);
         yAxis.setTickUnit(0.1);
 
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        XYChart.Series<Integer, Number> graphSeries = new XYChart.Series<>();
         graphData = FXCollections.observableArrayList();
-        /*graphData.add(new XYChart.Data<>(20, 0.7));
-        graphData.add(new XYChart.Data<>(30, 0.8));
-        graphData.add(new XYChart.Data<>(40, 0.6));
-        graphData.add(new XYChart.Data<>(50, 0.5));*/
-        series.setData(graphData);
-
-        graph.getData().add(series);
+        graphSeries.setData(graphData);
+        graph.getData().add(graphSeries);
         graph.setCreateSymbols(false);
+
+        // Animation causes some bugs
+        graph.setAnimated(false);
     }
 
     public void startAction(ActionEvent actionEvent) {
-        startButton.setDisable(true);
-        stopButton.setDisable(false);
+        status = AppStatus.RUNNING;
+        timer.start();
+        reviewButtons();
         latticeSizeSpinner.setDisable(true);
         repeatsSpinner.setDisable(true);
-        status = AppStatus.RUNNING;
 
-        Thread kek = new Thread(() -> {
-            long time1 = System.currentTimeMillis();
+        executor = Executors.newSingleThreadExecutor();
+        executor.submit(() -> {
+            int kmerSize;
+            if (graphData.size() == 0)
+                kmerSize = 2;
+            else
+                kmerSize = graphData.get(graphData.size() - 1).getXValue() + 1;
 
-            int kmerSize = 2;
             int allExperimentsAmount = latticeSizeSpinner.getValue() - kmerSize + 1;
 
             while (allExperimentsAmount > 0) {
@@ -103,32 +118,61 @@ public class MainController {
                     service.submit(new ExperimentExecutor(graphData, latch, latticeSizeSpinner.getValue(), kmerSize++,
                             repeatsSpinner.getValue()));
                 }
-                try {latch.await();} catch (InterruptedException e) {e.printStackTrace();}
+
+                try {latch.await();} catch (InterruptedException e) {service.shutdownNow(); return;}
                 service.shutdown();
             }
-
-            long time2 = System.currentTimeMillis();
-            System.out.printf("Elapsed time: %.2f\n", (time2 - time1) / 1000.0);
 
             status = AppStatus.FINISHED;
             stopAction(actionEvent);
         });
-        kek.start();
+        executor.shutdown();
+        timer.stop();
 
     }
 
     public void stopAction(ActionEvent actionEvent) {
-        startButton.setDisable(false);
-        stopButton.setDisable(true);
-        latticeSizeSpinner.setDisable(false);
-        repeatsSpinner.setDisable(false);
-
         switch (status) {
             case RUNNING:
+                executor.shutdownNow();
                 status = AppStatus.PAUSED;
                 break;
+        }
+        latticeSizeSpinner.setDisable(false);
+        repeatsSpinner.setDisable(false);
+        reviewButtons();
+        saveSettings();
+    }
+
+    private void reviewButtons() {
+        switch (status) {
+            case READY:
+                stopButton.setDisable(true);
+                startButton.setDisable(false);
+                break;
+            case RUNNING:
+                stopButton.setDisable(false);
+                startButton.setDisable(true);
+                break;
+            case PAUSED:
+                stopButton.setDisable(true);
+                startButton.setDisable(false);
+                break;
             case FINISHED:
+                stopButton.setDisable(true);
+                startButton.setDisable(false);
                 break;
         }
+    }
+
+    private void saveSettings() {
+        properties.putSetting("repeats", repeatsSpinnerFactory.getValue());
+        properties.putSetting("lattice_size", latticeSizeSpinnerFactory.getValue());
+        properties.putSetting("elapsed_time", timer.getElapsedTime());
+    }
+
+    private void clear() {
+        graphData.clear();
+        timer.clear();
     }
 }

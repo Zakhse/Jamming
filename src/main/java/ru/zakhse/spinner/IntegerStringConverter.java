@@ -1,8 +1,5 @@
 package ru.zakhse.spinner;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
-import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
 import javafx.event.*;
 import javafx.scene.control.*;
 import javafx.util.StringConverter;

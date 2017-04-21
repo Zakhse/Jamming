@@ -23,7 +23,7 @@
 <VBox prefHeight="469.0" prefWidth="566.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="ru.zakhse.jamming.controllers.MainController">
     <stylesheets>
-        <URL value="@/ru/zakhse/jamming/fxml/styles/ComplexApplication.css"/>
+        <URL value="@/fxml/styles/ComplexApplication.css"/>
     </stylesheets>
     <MenuBar useSystemMenuBar="false" VBox.vgrow="NEVER">
         <Menu mnemonicParsing="false" text="%menu.file.title">

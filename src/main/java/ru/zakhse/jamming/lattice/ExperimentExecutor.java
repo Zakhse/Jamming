@@ -13,17 +13,17 @@ public class ExperimentExecutor implements Runnable {
     private int kmerSize;
     private int repeats;
     private int numberOfThreads = 4;
-    private ObservableList<XYChart.Data<Number, Number>> graphData;
+    private ObservableList<XYChart.Data<Integer, Number>> graphData;
     private CountDownLatch latch;
 
-    public ExperimentExecutor(ObservableList<XYChart.Data<Number, Number>> graphData, CountDownLatch latch, int
+    public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Number>> graphData, CountDownLatch latch, int
             latticeSize, int kmerSize,
                               int repeats, int numberOfThreads) {
         this(graphData, latch, latticeSize, kmerSize, repeats);
         this.numberOfThreads = numberOfThreads;
     }
 
-    public ExperimentExecutor(ObservableList<XYChart.Data<Number, Number>> graphData, CountDownLatch latch, int
+    public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Number>> graphData, CountDownLatch latch, int
             latticeSize, int kmerSize, int repeats) {
         this.latch = latch;
         this.graphData = graphData;
@@ -34,7 +34,7 @@ public class ExperimentExecutor implements Runnable {
     }
 
     //region Setters
-    public void setGraphData(ObservableList<XYChart.Data<Number, Number>> graphData) {this.graphData = graphData;}
+    public void setGraphData(ObservableList<XYChart.Data<Integer, Number>> graphData) {this.graphData = graphData;}
 
     public void setLatticeSize(int latticeSize) {this.latticeSize = latticeSize;}
 
@@ -46,7 +46,7 @@ public class ExperimentExecutor implements Runnable {
     //endregion
 
     //region Getters
-    public ObservableList<XYChart.Data<Number, Number>> getGraphData() {return graphData;}
+    public ObservableList<XYChart.Data<Integer, Number>> getGraphData() {return graphData;}
 
     public int getLatticeSize() {return latticeSize;}
 
@@ -66,7 +66,9 @@ public class ExperimentExecutor implements Runnable {
         }
         double counter = 0.0;
         for (Future<Double> future : resultList) {
-            try {counter += future.get();} catch (InterruptedException | ExecutionException e) {e.printStackTrace();}
+            try {counter += future.get();} catch (InterruptedException | ExecutionException e) {
+                latch.countDown(); executor.shutdownNow(); return;
+            }
         }
         executor.shutdown();
         double finalCounter = counter;
