@@ -47,16 +47,13 @@ public class MainController {
     @FXML
     public void initialize() {
         properties = ExperimentProperties.getInstance();
+        timer = new Timer();
+        loadSettings();
         optionsInit();
         graphInit();
-        timer = new Timer();
     }
 
     private void optionsInit() {
-        Integer res = properties.getInt("k-mer_size");
-        latticeSizeSpinnerFactory.setValue(res != null ? res : 100);
-        res = properties.getInt("repeats");
-        repeatsSpinnerFactory.setValue(res != null ? res : 100);
         IntegerStringConverter.createFor(latticeSizeSpinner);
         IntegerStringConverter.createFor(repeatsSpinner);
 
@@ -87,7 +84,7 @@ public class MainController {
         graph.getData().add(graphSeries);
         graph.setCreateSymbols(false);
 
-        // Animation causes some bugs
+        // Animation causes some bugs!!!
         graph.setAnimated(false);
     }
 
@@ -171,8 +168,22 @@ public class MainController {
         properties.putSetting("elapsed_time", timer.getElapsedTime());
     }
 
+    private void loadSettings() {
+        properties.loadSettings();
+        Integer res = properties.getInt("lattice_size");
+        latticeSizeSpinnerFactory.setValue(res != null ? res : 100);
+
+        res = properties.getInt("repeats");
+        repeatsSpinnerFactory.setValue(res != null ? res : 100);
+
+        res = properties.getInt("elapsed_time");
+        if (res != null)
+            timer.addTime(res);
+    }
+
     private void clear() {
         graphData.clear();
         timer.clear();
+        saveSettings();
     }
 }

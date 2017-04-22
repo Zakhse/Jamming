@@ -18,6 +18,7 @@ import java.nio.file.*;
  */
 public class ExperimentProperties {
     private JSONObject store;
+
     private String fileName = "settings.json"; // Name of the file with settings
 
     private ExperimentProperties() {
@@ -33,26 +34,8 @@ public class ExperimentProperties {
         return SingletoneHolder.instance;
     }
 
-    // ELAPSED TIME
-    // in milliseconds
-    private volatile long elapsedTime;
 
-    public void clear() {
-        this.elapsedTime = 0;
-    }
-
-    public void setElapsedTime(long elapsedTime) {
-        this.elapsedTime = elapsedTime;
-    }
-
-    public long getElapsedTime() {
-
-        return elapsedTime;
-    }
-
-    public synchronized void addTime(long milliseconds) {
-        elapsedTime += milliseconds;
-    }
+    //region Getters/Setters
 
     public void putSetting(String key, String value) {
         store.put(key, value);
@@ -73,10 +56,12 @@ public class ExperimentProperties {
             return store.getInt(key);
         else return null;
     }
+    //endregion
 
     public void saveSettings() {
         try {
-            Files.write(Paths.get(fileName), store.toString().getBytes(), StandardOpenOption.CREATE);
+            Files.write(Paths.get(fileName), store.toString().getBytes(), StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
             e.printStackTrace();
         }

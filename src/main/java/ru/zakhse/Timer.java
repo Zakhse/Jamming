@@ -4,7 +4,7 @@ public class Timer {
     private enum State {READY, RUNNING, STOPPED}
 
     private long startTime;
-    private long elapsedTime;
+    private int elapsedTime;
     private State state;
 
     public Timer() {
@@ -12,12 +12,17 @@ public class Timer {
         elapsedTime = 0;
     }
 
-    public long start() {
+    public void addTime(int time) {
+        if (state != State.READY)
+            throw new RuntimeException("Timer is in " + state.toString() + " state");
+        elapsedTime += time;
+    }
+
+    public void start() {
         if (state != State.READY && state != State.STOPPED)
             throw new RuntimeException("Timer is in " + state.toString() + " state");
         startTime = System.currentTimeMillis();
         state = State.RUNNING;
-        return startTime;
     }
 
     public void stop() {
@@ -27,8 +32,8 @@ public class Timer {
         state = State.STOPPED;
     }
 
-    public long getElapsedTime() {
-        if (state != State.STOPPED)
+    public int getElapsedTime() {
+        if (state != State.STOPPED && state != State.READY)
             throw new RuntimeException("Timer is in " + state.toString() + " state");
         return elapsedTime;
     }
@@ -36,6 +41,7 @@ public class Timer {
     public void clear() {
         if (state != State.STOPPED && state != State.READY)
             throw new RuntimeException("Timer is in " + state.toString() + " state");
+        state = State.READY;
         elapsedTime = 0;
     }
 }
