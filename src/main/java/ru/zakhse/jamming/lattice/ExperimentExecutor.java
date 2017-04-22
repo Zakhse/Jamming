@@ -13,17 +13,17 @@ public class ExperimentExecutor implements Runnable {
     private int kmerSize;
     private int repeats;
     private int numberOfThreads = 4;
-    private ObservableList<XYChart.Data<Integer, Number>> graphData;
+    private ObservableList<XYChart.Data<Integer, Double>> graphData;
     private CountDownLatch latch;
 
-    public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Number>> graphData, CountDownLatch latch, int
+    public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Double>> graphData, CountDownLatch latch, int
             latticeSize, int kmerSize,
                               int repeats, int numberOfThreads) {
         this(graphData, latch, latticeSize, kmerSize, repeats);
         this.numberOfThreads = numberOfThreads;
     }
 
-    public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Number>> graphData, CountDownLatch latch, int
+    public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Double>> graphData, CountDownLatch latch, int
             latticeSize, int kmerSize, int repeats) {
         this.latch = latch;
         this.graphData = graphData;
@@ -34,7 +34,7 @@ public class ExperimentExecutor implements Runnable {
     }
 
     //region Setters
-    public void setGraphData(ObservableList<XYChart.Data<Integer, Number>> graphData) {this.graphData = graphData;}
+    public void setGraphData(ObservableList<XYChart.Data<Integer, Double>> graphData) {this.graphData = graphData;}
 
     public void setLatticeSize(int latticeSize) {this.latticeSize = latticeSize;}
 
@@ -46,7 +46,7 @@ public class ExperimentExecutor implements Runnable {
     //endregion
 
     //region Getters
-    public ObservableList<XYChart.Data<Integer, Number>> getGraphData() {return graphData;}
+    public ObservableList<XYChart.Data<Integer, Double>> getGraphData() {return graphData;}
 
     public int getLatticeSize() {return latticeSize;}
 

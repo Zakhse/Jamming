@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import ru.zakhse.jamming.controllers.MainController;
 import ru.zakhse.jamming.lattice.ExperimentProperties;
 
 import java.net.URI;
@@ -37,10 +38,10 @@ public class Main extends Application {
         primaryStage.setMinWidth(450);
         primaryStage.show();
         primaryStage.setOnCloseRequest(event -> {
+            ((MainController) fxmlLoader.getController()).stopExperiment();
             ExperimentProperties.getInstance().saveSettings();
         });
     }
-
 
     public static void main(String[] args) {
         launch(args);

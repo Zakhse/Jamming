@@ -1,5 +1,6 @@
 package ru.zakhse.jamming.controllers;
 
+import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -27,10 +28,10 @@ public class MainController {
     public Label rightStatus;
     public ProgressBar progressBar;
 
-    public LineChart<Integer, Number> graph;
+    public LineChart<Integer, Double> graph;
     public NumberAxis xAxis;
     public NumberAxis yAxis;
-    public ObservableList<XYChart.Data<Integer, Number>> graphData;
+    public ObservableList<XYChart.Data<Integer, Double>> graphData;
 
     public Spinner<Integer> repeatsSpinner;
     public Spinner<Integer> latticeSizeSpinner;
@@ -42,12 +43,23 @@ public class MainController {
     private ExecutorService executor;
 
     private Timer timer;
+    private AnimationTimer timeRefresher;
     private ExperimentProperties properties;
 
     @FXML
     public void initialize() {
         properties = ExperimentProperties.getInstance();
         timer = new Timer();
+
+
+        timeRefresher = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                rightStatus.setText(MStoString(timer.countAndGetElapsedTime()));
+            }
+        };
+
+
         loadSettings();
         optionsInit();
         graphInit();
@@ -78,8 +90,7 @@ public class MainController {
         yAxis.setUpperBound(1.0);
         yAxis.setTickUnit(0.1);
 
-        XYChart.Series<Integer, Number> graphSeries = new XYChart.Series<>();
-        graphData = FXCollections.observableArrayList();
+        XYChart.Series<Integer, Double> graphSeries = new XYChart.Series<>();
         graphSeries.setData(graphData);
         graph.getData().add(graphSeries);
         graph.setCreateSymbols(false);
@@ -91,6 +102,7 @@ public class MainController {
     public void startAction(ActionEvent actionEvent) {
         status = AppStatus.RUNNING;
         timer.start();
+        timeRefresher.start();
         reviewButtons();
         latticeSizeSpinner.setDisable(true);
         repeatsSpinner.setDisable(true);
@@ -120,21 +132,24 @@ public class MainController {
                 service.shutdown();
             }
 
+            stopExperiment();
             status = AppStatus.FINISHED;
-            stopAction(actionEvent);
         });
         executor.shutdown();
-        timer.stop();
-
     }
 
     public void stopAction(ActionEvent actionEvent) {
-        switch (status) {
-            case RUNNING:
-                executor.shutdownNow();
-                status = AppStatus.PAUSED;
-                break;
-        }
+        stopExperiment();
+    }
+
+    public void stopExperiment() {
+        if (status != AppStatus.RUNNING)
+            return;
+
+        executor.shutdownNow();
+        status = AppStatus.PAUSED;
+        timer.stop();
+        timeRefresher.stop();
         latticeSizeSpinner.setDisable(false);
         repeatsSpinner.setDisable(false);
         reviewButtons();
@@ -166,6 +181,7 @@ public class MainController {
         properties.putSetting("repeats", repeatsSpinnerFactory.getValue());
         properties.putSetting("lattice_size", latticeSizeSpinnerFactory.getValue());
         properties.putSetting("elapsed_time", timer.getElapsedTime());
+        properties.graph = graphData;
     }
 
     private void loadSettings() {
@@ -179,11 +195,36 @@ public class MainController {
         res = properties.getInt("elapsed_time");
         if (res != null)
             timer.addTime(res);
+
+        graphData = properties.graph;
+        if (graphData == null)
+            graphData = FXCollections.observableArrayList();
+
+        rightStatus.setText(MStoString(timer.countAndGetElapsedTime()));
     }
 
     private void clear() {
         graphData.clear();
         timer.clear();
+        rightStatus.setText(MStoString(0));
         saveSettings();
+    }
+
+    /**
+     * Converts time in milliseconds to string in format HH:MM:SS
+     *
+     * @param ms - time in milliseconds
+     * @return String representation of time in format HH:MM:SS
+     */
+    private String MStoString(long ms) {
+        long h = TimeUnit.MILLISECONDS.toHours(ms);
+        long m = TimeUnit.MILLISECONDS.toMinutes(ms) -
+                TimeUnit.HOURS.toMinutes(h);
+        long s = TimeUnit.MILLISECONDS.toSeconds(ms) -
+                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(ms));
+        return String.format("%02d:%02d:%02d",
+                h,
+                m,
+                s);
     }
 }
