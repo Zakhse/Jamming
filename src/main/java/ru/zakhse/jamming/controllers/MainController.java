@@ -3,8 +3,8 @@ package ru.zakhse.jamming.controllers;
 import javafx.animation.AnimationTimer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -14,55 +14,64 @@ import ru.zakhse.jamming.lattice.ExperimentExecutor;
 import ru.zakhse.jamming.lattice.ExperimentProperties;
 import ru.zakhse.spinner.*;
 
-import java.sql.Time;
+import java.net.URL;
+import java.util.ResourceBundle;
 import java.util.concurrent.*;
 
-public class MainController {
-
+public class MainController implements Initializable {
     enum AppStatus {READY, RUNNING, PAUSED, FINISHED}
 
-    public AppStatus status = AppStatus.FINISHED;
+    private AppStatus status = AppStatus.FINISHED;
 
     @FXML
-    public Label leftStatus;
-    public Label rightStatus;
-    public ProgressBar progressBar;
+    private LineChart<Integer, Double> graph;
+    @FXML
+    private NumberAxis xAxis;
+    @FXML
+    private NumberAxis yAxis;
+    @FXML
+    private Spinner<Integer> repeatsSpinner;
+    @FXML
+    private Spinner<Integer> latticeSizeSpinner;
+    @FXML
+    private SpinnerValueFactory.IntegerSpinnerValueFactory latticeSizeSpinnerFactory;
+    @FXML
+    private SpinnerValueFactory.IntegerSpinnerValueFactory repeatsSpinnerFactory;
+    @FXML
+    private Button startButton;
+    @FXML
+    private Button stopButton;
+    @FXML
+    private Label statusValue;
+    @FXML
+    private MenuItem aboutMenu;
 
-    public LineChart<Integer, Double> graph;
-    public NumberAxis xAxis;
-    public NumberAxis yAxis;
-    public ObservableList<XYChart.Data<Integer, Double>> graphData;
-
-    public Spinner<Integer> repeatsSpinner;
-    public Spinner<Integer> latticeSizeSpinner;
-    public SpinnerValueFactory.IntegerSpinnerValueFactory latticeSizeSpinnerFactory;
-    public SpinnerValueFactory.IntegerSpinnerValueFactory repeatsSpinnerFactory;
-    public Button startButton;
-    public Button stopButton;
 
     private ExecutorService executor;
-
     private Timer timer;
     private AnimationTimer timeRefresher;
     private ExperimentProperties properties;
+    private ObservableList<XYChart.Data<Integer, Double>> graphData;
+    private ResourceBundle resourceBundle;
 
-    @FXML
-    public void initialize() {
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        resourceBundle = resources;
+
         properties = ExperimentProperties.getInstance();
         timer = new Timer();
-
 
         timeRefresher = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                rightStatus.setText(MStoString(timer.countAndGetElapsedTime()));
+                statusValue.setText(MStoString(timer.countAndGetElapsedTime()));
             }
         };
-
 
         loadSettings();
         optionsInit();
         graphInit();
+        saveSettings();
     }
 
     private void optionsInit() {
@@ -73,18 +82,16 @@ public class MainController {
             xAxis.setUpperBound(newValue);
             clear();
         }));
-        repeatsSpinner.valueProperty().addListener(((observable, oldValue, newValue) -> {
-            clear();
-        }));
+        repeatsSpinner.valueProperty().addListener(((observable, oldValue, newValue) -> clear()));
     }
 
     private void graphInit() {
-        xAxis.setLabel("k-mer size");
+        xAxis.setLabel(resourceBundle.getString("graph.XTitle"));
         xAxis.setAutoRanging(false);
         xAxis.setLowerBound(2);
         xAxis.setUpperBound(latticeSizeSpinner.getValue());
 
-        yAxis.setLabel("Filled part of lattice");
+        yAxis.setLabel(resourceBundle.getString("graph.YTitle"));
         yAxis.setAutoRanging(false);
         yAxis.setLowerBound(0.0);
         yAxis.setUpperBound(1.0);
@@ -94,12 +101,13 @@ public class MainController {
         graphSeries.setData(graphData);
         graph.getData().add(graphSeries);
         graph.setCreateSymbols(false);
+        graph.setLegendVisible(false);
 
         // Animation causes some bugs!!!
         graph.setAnimated(false);
     }
 
-    public void startAction(ActionEvent actionEvent) {
+    public void startAction() {
         status = AppStatus.RUNNING;
         timer.start();
         timeRefresher.start();
@@ -117,29 +125,41 @@ public class MainController {
 
             int allExperimentsAmount = latticeSizeSpinner.getValue() - kmerSize + 1;
 
+            ExecutorService service = Executors.newFixedThreadPool(3);
             while (allExperimentsAmount > 0) {
                 int newTasksAmount = allExperimentsAmount - 3 > 0 ? 3 : allExperimentsAmount;
                 allExperimentsAmount -= newTasksAmount;
                 CountDownLatch latch = new CountDownLatch(newTasksAmount);
 
-                ExecutorService service = Executors.newFixedThreadPool(4);
                 for (int j = 0; j < newTasksAmount; j++) {
                     service.submit(new ExperimentExecutor(graphData, latch, latticeSizeSpinner.getValue(), kmerSize++,
                             repeatsSpinner.getValue()));
                 }
 
                 try {latch.await();} catch (InterruptedException e) {service.shutdownNow(); return;}
-                service.shutdown();
             }
-
+            service.shutdown();
             stopExperiment();
             status = AppStatus.FINISHED;
         });
         executor.shutdown();
     }
 
-    public void stopAction(ActionEvent actionEvent) {
+    public void stopAction() {
         stopExperiment();
+    }
+
+
+    private Alert aboutAlert;
+
+    public void openAbout() {
+        if (aboutAlert == null) {
+            aboutAlert = new Alert(Alert.AlertType.INFORMATION);
+            aboutAlert.setTitle(null);
+            aboutAlert.setHeaderText(aboutMenu.getText());
+            aboutAlert.setContentText(resourceBundle.getString("menu.help.about.info"));
+        }
+        aboutAlert.show();
     }
 
     public void stopExperiment() {
@@ -200,13 +220,13 @@ public class MainController {
         if (graphData == null)
             graphData = FXCollections.observableArrayList();
 
-        rightStatus.setText(MStoString(timer.countAndGetElapsedTime()));
+        statusValue.setText(MStoString(timer.countAndGetElapsedTime()));
     }
 
     private void clear() {
         graphData.clear();
         timer.clear();
-        rightStatus.setText(MStoString(0));
+        statusValue.setText(MStoString(0));
         saveSettings();
     }
 

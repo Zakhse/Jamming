@@ -7,9 +7,6 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import ru.zakhse.jamming.controllers.MainController;
 import ru.zakhse.jamming.lattice.ExperimentProperties;
-
-import java.net.URI;
-import java.net.URL;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;

@@ -31,7 +31,7 @@ class FieldGenerator implements Callable<Double> {
      */
     @Override
     public Double call() throws Exception {
-        KmerField field = new KmerField();
+        KmerField field = new KmerField(false);
         field.generateField(size, kmerSize);
         return field.getFilledSpace();
     }

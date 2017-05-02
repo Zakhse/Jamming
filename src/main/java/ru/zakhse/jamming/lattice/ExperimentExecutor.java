@@ -8,6 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 
+/**
+ * Class to execute experiment with provided parameters
+ */
 public class ExperimentExecutor implements Runnable {
     private int latticeSize;
     private int kmerSize;
@@ -15,13 +18,6 @@ public class ExperimentExecutor implements Runnable {
     private int numberOfThreads = 4;
     private ObservableList<XYChart.Data<Integer, Double>> graphData;
     private CountDownLatch latch;
-
-    public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Double>> graphData, CountDownLatch latch, int
-            latticeSize, int kmerSize,
-                              int repeats, int numberOfThreads) {
-        this(graphData, latch, latticeSize, kmerSize, repeats);
-        this.numberOfThreads = numberOfThreads;
-    }
 
     public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Double>> graphData, CountDownLatch latch, int
             latticeSize, int kmerSize, int repeats) {
@@ -33,33 +29,12 @@ public class ExperimentExecutor implements Runnable {
 
     }
 
-    //region Setters
-    public void setGraphData(ObservableList<XYChart.Data<Integer, Double>> graphData) {this.graphData = graphData;}
-
-    public void setLatticeSize(int latticeSize) {this.latticeSize = latticeSize;}
-
-    public void setKmerSize(int kmerSize) {this.kmerSize = kmerSize;}
-
-    public void setRepeats(int repeats) {this.repeats = repeats;}
-
-    public void setNumberOfThreads(int numberOfThreads) {this.numberOfThreads = numberOfThreads;}
-    //endregion
-
-    //region Getters
-    public ObservableList<XYChart.Data<Integer, Double>> getGraphData() {return graphData;}
-
-    public int getLatticeSize() {return latticeSize;}
-
-    public int getKmerSize() {return kmerSize;}
-
-    public int getRepeats() {return repeats;}
-
-    public int getNumberOfThreads() {return numberOfThreads;}
-    //endregion
-
+    /**
+     * Runs the experiment
+     */
     @Override
     public void run() {
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numberOfThreads);
         List<Future<Double>> resultList = new LinkedList<>();
         for (int i = 0; i < repeats; i++) {
             resultList.add(executor.submit(new FieldGenerator(latticeSize, kmerSize)));
