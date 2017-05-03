@@ -54,7 +54,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>ru.zakhse.jamming.Main</mainClass>
+                            <mainClass>ru.zakhse.jamming.Jamming</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -3,7 +3,7 @@ package ru.zakhse.jamming.lattice;
 import java.util.concurrent.Callable;
 
 /**
- * Allows to generate a square lattice filled randomly with k-mers with the condition tha
+ * Allows to generate a square lattice filled randomly with k-mers with the condition that
  * then not any more k-mers can be placed in this lattice.
  *
  * @author Zakhse

@@ -18,7 +18,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.concurrent.*;
 
-public class MainController implements Initializable {
+public class JammingController implements Initializable {
     enum AppStatus {READY, RUNNING, PAUSED, FINISHED}
 
     private AppStatus status = AppStatus.FINISHED;

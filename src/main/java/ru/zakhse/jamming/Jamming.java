@@ -5,13 +5,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import ru.zakhse.jamming.controllers.MainController;
+import ru.zakhse.jamming.controllers.JammingController;
 import ru.zakhse.jamming.lattice.ExperimentProperties;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-public class Main extends Application {
+public class Jamming extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -35,7 +35,7 @@ public class Main extends Application {
         primaryStage.setMinWidth(450);
         primaryStage.show();
         primaryStage.setOnCloseRequest(event -> {
-            ((MainController) fxmlLoader.getController()).stopExperiment();
+            ((JammingController) fxmlLoader.getController()).stopExperiment();
             ExperimentProperties.getInstance().saveSettings();
         });
     }
