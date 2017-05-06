@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import ru.zakhse.jamming.controllers.JammingController;
 import ru.zakhse.jamming.lattice.ExperimentProperties;
+
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -35,12 +36,12 @@ public class Jamming extends Application {
         primaryStage.setMinWidth(450);
         primaryStage.show();
         primaryStage.setOnCloseRequest(event -> {
-            ((JammingController) fxmlLoader.getController()).stopExperiment();
+            ((JammingController) fxmlLoader.getController()).stopAction();
             ExperimentProperties.getInstance().saveSettings();
         });
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    public static void main() {
+        launch();
     }
 }

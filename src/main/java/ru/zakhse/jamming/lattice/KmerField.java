@@ -40,18 +40,8 @@ public class KmerField {
 
     private static Random rnd = new Random();
 
-    private int size;
-    private int kmerSize;
     private boolean generated = false;
     private double filledSpace = 0.0;
-
-    public boolean isGenerated() {return generated;}
-
-    public int getSize() {return size;}
-
-    public int getKmerSize() {return kmerSize;}
-
-    public boolean getVisualization() {return visualization;}
 
     /**
      * Gets part of square lattice which is covered by k-mers
@@ -65,10 +55,10 @@ public class KmerField {
         if (!visualization) return null;
         if (!generated) return null;
         StringBuilder str = new StringBuilder();
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (field[i][j] == null || field[i][j].filling == Filling.EMPTY) str.append("  ");
-                else if (field[i][j].arrangement == Arrangement.HORIZONTAL) str.append("- ");
+        for (kmerCell[] aField : field) {
+            for (int j = 0; j < field.length; j++) {
+                if (aField[j] == null || aField[j].filling == Filling.EMPTY) str.append("  ");
+                else if (aField[j].arrangement == Arrangement.HORIZONTAL) str.append("- ");
                 else str.append("| ");
             }
             str.append("\n");
@@ -86,9 +76,6 @@ public class KmerField {
      */
     public void generateField(int size, int kmerSize) {
         if (size < kmerSize) throw new IllegalArgumentException("Size field cannot be less than size of k-mers.");
-
-        this.size = size;
-        this.kmerSize = kmerSize;
 
         if (visualization) {
             field = new kmerCell[size][];
@@ -130,7 +117,7 @@ public class KmerField {
             int Y = chosenPoint.getY();
 
             if (visualization) {
-                kmerCell kmerToPlace = new kmerCell(X, Y, chosenArrangement);
+                kmerCell kmerToPlace = new kmerCell(chosenArrangement);
 
                 // Placing the kmer of this iteration
                 if (chosenArrangement == Arrangement.HORIZONTAL)
@@ -171,19 +158,11 @@ public class KmerField {
     } // generation
 
     private class kmerCell {
-        private Point point;
         private Arrangement arrangement;
         Filling filling;
 
-        int getHeadX() {return point.getX();}
-
-        int getHeadY() {return point.getY();}
-
-        Arrangement getArrangement() {return arrangement;}
-
-        kmerCell(int headX, int headY, Arrangement arrangement) {
+        kmerCell(Arrangement arrangement) {
             this.arrangement = arrangement;
-            point = new Point(headX, headY);
             filling = Filling.FILLED;
         }
     }

@@ -139,14 +139,24 @@ public class JammingController implements Initializable {
                 try {latch.await();} catch (InterruptedException e) {service.shutdownNow(); return;}
             }
             service.shutdown();
-            stopExperiment();
+            stopAction();
             status = AppStatus.FINISHED;
         });
         executor.shutdown();
     }
 
     public void stopAction() {
-        stopExperiment();
+        if (status != AppStatus.RUNNING)
+            return;
+
+        executor.shutdownNow();
+        status = AppStatus.PAUSED;
+        timer.stop();
+        timeRefresher.stop();
+        latticeSizeSpinner.setDisable(false);
+        repeatsSpinner.setDisable(false);
+        reviewButtons();
+        saveSettings();
     }
 
 
@@ -160,20 +170,6 @@ public class JammingController implements Initializable {
             aboutAlert.setContentText(resourceBundle.getString("menu.help.about.info"));
         }
         aboutAlert.show();
-    }
-
-    public void stopExperiment() {
-        if (status != AppStatus.RUNNING)
-            return;
-
-        executor.shutdownNow();
-        status = AppStatus.PAUSED;
-        timer.stop();
-        timeRefresher.stop();
-        latticeSizeSpinner.setDisable(false);
-        repeatsSpinner.setDisable(false);
-        reviewButtons();
-        saveSettings();
     }
 
     private void reviewButtons() {

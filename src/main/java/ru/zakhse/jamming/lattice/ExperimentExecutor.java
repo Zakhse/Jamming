@@ -16,10 +16,10 @@ public class ExperimentExecutor implements Runnable {
     private int kmerSize;
     private int repeats;
     private int numberOfThreads = 4;
-    private ObservableList<XYChart.Data<Integer, Double>> graphData;
+    private List<XYChart.Data<Integer, Double>> graphData;
     private CountDownLatch latch;
 
-    public ExperimentExecutor(ObservableList<XYChart.Data<Integer, Double>> graphData, CountDownLatch latch, int
+    public ExperimentExecutor(List<XYChart.Data<Integer, Double>> graphData, CountDownLatch latch, int
             latticeSize, int kmerSize, int repeats) {
         this.latch = latch;
         this.graphData = graphData;
